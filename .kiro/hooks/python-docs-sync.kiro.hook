@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "name": "Python Source Documentation Sync",
+  "description": "Monitors all Python source files and configuration files in the repository. When changes are detected, automatically updates the README.md with relevant documentation changes to keep project documentation in sync with code modifications.",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "*.py",
+      "config.py",
+      "README.md"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The Python source files in this parkour shooter game project have been modified. Please review the changes and update the README.md file to reflect any new features, API changes, configuration updates, or architectural modifications. Focus on keeping the documentation accurate and helpful for developers working on this Ursina-based 3D parkour game with advanced movement mechanics, time trials, and target shooting gameplay."
+  }
+}

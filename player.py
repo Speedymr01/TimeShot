@@ -1,0 +1,176 @@
+"""
+Player System
+=============
+
+Player controller, movement physics, and related functionality.
+"""
+
+from ursina import *
+from ursina.prefabs.first_person_controller import FirstPersonController
+from config import *
+from utils import *
+import math
+
+# ===============================================
+# === PLAYER SYSTEM ============================
+# ===============================================
+
+from typing import Optional
+
+class PlayerController:
+    """
+    Manages player movement, physics, and state.
+    
+    Handles advanced movement mechanics including sliding, dashing,
+    wall running, and momentum-based physics.
+    """
+    
+    def __init__(self):
+        # Initialize player
+        self.player = FirstPersonController(position=PLAYER_START_POS)
+        self.player.gravity = PLAYER_GRAVITY
+        self.player.jump_height = PLAYER_JUMP_HEIGHT
+        self.player.speed = PLAYER_SPEED
+        
+        # Set proper camera height
+        self.player.camera_pivot.y = NORMAL_CAMERA_Y
+        self.player.collider = 'box'
+        
+        # Initialize position tracking
+        self.measured_player_prev_pos = self.player.position
+        
+        # Create player hitbox (invisible in first-person)
+        self.player_model = Entity(
+            parent=self.player,
+            model='cube',
+            color=color.rgba(100, 150, 255, 150),
+            scale=(0.8, 1.8, 0.8),
+            position=(0, 0.9, 0),
+            collider=None,
+            visible=False  # Always hidden in first-person
+        )
+        
+        # Movement state
+        self.movement_velocity = Vec3(0, 0, 0)
+        self.measured_player_velocity = Vec3(0, 0, 0)
+        
+        # Movement state flags
+        self.is_sliding = False
+        self.slide_velocity = 0
+        self.slide_direction = Vec3(0, 0, 0)
+        self.is_airborne = False
+        self.is_sprinting = False
+        self.slide_timer = 0.0
+        self.dash_timer = 0.0
+        
+        # Wall running state
+        self.is_wall_running = False
+        self.wall_run_timer = 0.0
+        self.wall_normal = Vec3(0, 0, 0)
+        self.wall_run_side = 0  # -1 for left wall, 1 for right wall, 0 for no wall
+    
+    def update_velocity_measurement(self) -> None:
+        """
+        Calculate player's instantaneous velocity for physics interactions.
+        
+        Uses frame time delta to compute velocity from position changes.
+        Includes safety checks for zero delta time and initialization.
+        """
+        # Early validation
+        if not hasattr(self.player, 'position') or time.dt <= 0:
+            if not hasattr(self, 'measured_player_velocity'):
+                self.measured_player_velocity = Vec3(0, 0, 0)
+            return
+        
+        try:
+            self.measured_player_velocity = (
+                self.player.position - self.measured_player_prev_pos
+            ) / time.dt
+            self.measured_player_prev_pos = self.player.position
+        except (AttributeError, ZeroDivisionError) as e:
+            print(f"Error in velocity measurement: {e}")
+            self.measured_player_velocity = Vec3(0, 0, 0)
+    
+    def update_timers(self):
+        """Update all cooldown timers."""
+        self.slide_timer = max(self.slide_timer - time.dt, 0)
+        self.dash_timer = max(self.dash_timer - time.dt, 0)
+    
+    def handle_sprint_input(self):
+        """Process sprint input and return target max speed."""
+        if held_keys['shift'] and not self.is_sliding:
+            self.is_sprinting = True
+            return MAX_SPEED * SPRINT_MULTIPLIER
+        else:
+            self.is_sprinting = False
+            return MAX_SPEED
+    
+    def handle_slide_trigger(self):
+        """Initiate sliding when conditions are met."""
+        if held_keys['control'] and not self.is_sliding and self.slide_timer <= 0 and self.is_sprinting:
+            self.is_sliding = True
+            self.slide_velocity = SLIDE_START_VELOCITY
+            self.slide_direction = self.player.forward.normalized()
+            self.slide_timer = SLIDE_COOLDOWN
+            # Reset horizontal movement velocity
+            self.movement_velocity.x = 0
+            self.movement_velocity.z = 0
+    
+    def handle_sliding_physics(self):
+        """Handle sliding physics and camera."""
+        if self.is_sliding:
+            hit_info = raycast(self.player.position, Vec3(0, -1, 0), distance=2, ignore=[self.player])
+            if hit_info.hit:
+                slope_normal = hit_info.normal
+                downhill = Vec3(-slope_normal.x, 0, -slope_normal.z).normalized()
+                self.slide_direction = lerp(self.slide_direction, downhill, time.dt * 2)
+                self.slide_velocity += GRAVITY_FORCE * (1 - hit_info.normal.y) * time.dt
+
+            slide_step = self.slide_direction * self.slide_velocity * time.dt
+            hit = raycast(self.player.position, self.slide_direction, distance=slide_step.length() + 0.5, ignore=[self.player])
+            if not hit.hit:
+                self.player.position += slide_step
+            else:
+                self.is_sliding = False
+                self.slide_velocity = 0
+
+            self.player.camera_pivot.y = lerp(self.player.camera_pivot.y, SLIDE_CAMERA_Y, time.dt * 8)
+            self.slide_velocity = max(self.slide_velocity - SLIDE_FRICTION * time.dt, 0)
+
+            if held_keys['space']:
+                self.is_sliding = False
+                self.slide_velocity = 0
+        else:
+            self.player.camera_pivot.y = lerp(self.player.camera_pivot.y, NORMAL_CAMERA_Y, time.dt * 6)
+    
+    def handle_dash_input(self):
+        """Handle dash input - applies force in look direction."""
+        if held_keys['q'] and self.dash_timer <= 0:
+            # Calculate separate horizontal and vertical components
+            horizontal_force = DASH_FORCE * 1.5  # Boost horizontal to compensate for friction
+            vertical_force = DASH_FORCE * 0.6    # Reduce vertical to balance with horizontal
+            
+            # Apply horizontal force (X and Z)
+            dash_direction = camera.forward.normalized()
+            horizontal_component = Vec3(dash_direction.x, 0, dash_direction.z).normalized()
+            if horizontal_component.length() > 0:
+                self.movement_velocity.x += horizontal_component.x * horizontal_force
+                self.movement_velocity.z += horizontal_component.z * horizontal_force
+            
+            # Apply vertical force (Y) with constraints
+            if self.player.grounded:
+                # Ground dash: small upward boost only if looking up
+                if dash_direction.y > 0:
+                    self.movement_velocity.y += dash_direction.y * vertical_force * 0.5
+            else:
+                # Air dash: allow vertical movement but cap it
+                vertical_boost = dash_direction.y * vertical_force * 0.7
+                # Cap vertical velocity to prevent excessive flying
+                new_y_velocity = self.movement_velocity.y + vertical_boost
+                self.movement_velocity.y = max(-30, min(30, new_y_velocity))
+            
+            self.dash_timer = DASH_COOLDOWN
+            print(f"Dash - H: {horizontal_force:.1f}, V: {vertical_force:.1f}, Dir: {dash_direction}")
+
+# Global player instance (will be initialized in main.py)
+player_controller = None

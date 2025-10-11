@@ -38,7 +38,52 @@ from menu import MenuSystem
 from map_environment import MapEnvironment
 from wall_running import *
 from physics import *
-import input_handler  # This sets up the global input function
+
+
+# ===============================================
+# === INPUT FUNCTION ===========================
+# ===============================================
+
+def input(key):
+    """Handle user input - this function is automatically called by Ursina."""
+    # Import here to avoid circular imports
+    from player import player_controller
+    from weapons import weapon_controller
+    from game_state import game_state
+    from targets import target_manager
+    
+    # Validate input key
+    if not key or not isinstance(key, str):
+        return
+    
+    # Handle menu navigation when game is not active
+    if not player_controller.player.enabled and not game_state.is_timed_mode:
+        if key == 'enter':
+            try:
+                game_state.return_to_menu(player_controller)
+            except Exception as e:
+                print(f"Error returning to menu: {e}")
+        return
+    
+    # Early exit if player is not enabled
+    if not player_controller.player.enabled:
+        return
+    
+    # Handle shooting input
+    if key == 'left mouse down':
+        if weapon_controller and weapon_controller.gun_equipped:
+            try:
+                weapon_controller.shoot(target_manager.target_spheres, game_state)
+            except Exception as e:
+                print(f"Error during shooting: {e}")
+    
+    # Handle gun drop input with cooldown check
+    if key == 'r' and weapon_controller.gun_drop_timer <= 0:
+        try:
+            weapon_controller.drop_and_respawn_gun()
+            weapon_controller.gun_drop_timer = GUN_DROP_COOLDOWN
+        except Exception as e:
+            print(f"Error dropping gun: {e}")
 
 # ===============================================
 # === GAME INITIALIZATION ======================
@@ -62,6 +107,7 @@ import game_state as gs
 import menu
 import map_environment as me
 
+# Assign instances to global variables
 player.player_controller = player_controller
 weapons.weapon_controller = weapon_controller
 targets.target_manager = target_manager

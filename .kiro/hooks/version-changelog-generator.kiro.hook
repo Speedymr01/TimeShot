@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Version Changelog Generator",
+  "description": "Automatically generates a new changelog entry when the version number in current_version.txt is modified",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "current_version.txt"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The version number in current_version.txt has been updated. Generate a new changelog entry for this version. Create a new markdown file in the changelog/ directory with the filename format matching the existing pattern (look at how existing logs are named (m stands for month)). The changelog should include sections for new features, bug fixes, improvements, and any breaking changes. Focus only on creating the changelog content, not any other documentation."
+  }
+}

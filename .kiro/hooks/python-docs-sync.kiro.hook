@@ -4,7 +4,7 @@
   "description": "Monitors all Python source files and configuration files in the repository. When changes are detected, automatically updates the README.md with relevant documentation changes to keep project documentation in sync with code modifications.",
   "version": "1",
   "when": {
-    "type": "userTriggered",
+    "type": "fileEdited",
     "patterns": [
       "*.py",
       "config.py",

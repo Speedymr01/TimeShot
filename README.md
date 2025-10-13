@@ -71,8 +71,7 @@ TimeShot combines fluid parkour movement with precision shooting in a 3D environ
 The game is built with a clean, modular architecture:
 
 ```
-├── launcher.py          # Application launcher with menu system
-├── main.py              # Game entry point and main loop
+├── main.py              # Application entry point
 ├── config.py            # Game constants and settings
 ├── player.py            # Player controller and movement
 ├── weapons.py           # Gun mechanics and shooting
@@ -104,10 +103,9 @@ The game is built with a clean, modular architecture:
    ```bash
    pip install ursina
    ```
-3. Launch the game:
+3. Run the game:
    ```bash
-   python launcher.py  # Recommended - shows menu
-   python main.py      # Direct game launch
+   python main.py
    ```
 
 ### Asset Requirements
@@ -116,8 +114,6 @@ Ensure the following assets are in the `assets/` directory:
 - `texture_01.png` - Map texture
 - `gun3.obj` - Gun model
 - `textures/gun3_texture.png` - Gun texture
-
-**Note**: This build focuses on the core parkour shooter gameplay. Level editing capabilities are planned for future releases.
 
 ## 🎨 Game Vision
 
@@ -151,13 +147,13 @@ The game emphasizes **flow state** through fluid movement mechanics and **precis
 
 ## 📝 Recent Updates
 
-- ✅ **Launcher System**: Menu-driven application launcher for streamlined game access
-- ✅ **Modular Architecture**: Clean separation of game systems and components
-- ✅ **Advanced Wall Running**: Key-based controls with consistent horizontal speed
-- ✅ **Wall Kick Mechanics**: Responsive wall exit with momentum preservation
-- ✅ **Restart Functionality**: Quick restart with P key for practice runs
-- ✅ **Enhanced Physics**: Improved collision detection and movement chaining
-- ✅ **Performance Optimization**: Efficient raycast usage and modular updates
+- ✅ Modular architecture implementation
+- ✅ Advanced wall running with key-based controls
+- ✅ Consistent horizontal speed during wall running
+- ✅ Wall kick on key release
+- ✅ Restart functionality (P key)
+- ✅ Improved collision detection and physics
+- ✅ Enhanced movement chaining capabilities
 
 ## 🤝 Contributing
 

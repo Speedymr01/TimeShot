@@ -89,8 +89,8 @@ GUN_RESPAWN_TIME = 1.0            # Time to respawn new gun after drop
 
 # === Recoil System ===
 RECOIL_ENABLED = True             # Enable recoil effects
-RECOIL_VERTICAL = 2.5             # Upward camera kick on shot
-RECOIL_HORIZONTAL = 1.0           # Random horizontal camera kick
+RECOIL_VERTICAL = 0.3             # Upward camera kick on shot
+RECOIL_HORIZONTAL = 0           # Random horizontal camera kick
 RECOIL_RECOVERY_SPEED = 8.0       # How fast recoil recovers
 RECOIL_DURATION = 0.15            # How long recoil effect lasts
 RECOIL_PATTERN_ENABLED = False    # Use predictable recoil pattern

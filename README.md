@@ -103,7 +103,7 @@ The configuration system uses a modular directory structure with enhanced securi
 - **🔊 Audio Settings** (3 settings) - Volume controls, sound paths
 - **🏃 Player Settings** (9 settings) - Movement, camera, physics
 - **🏃‍♂️ Advanced Movement** (10 settings) - Sliding, dashing, wall running
-- **🔫 Weapon Systems** (15 settings) - Recoil, shooting, gun physics
+- **🔫 Weapon Systems** (15 settings) - Recoil (vertical-only), shooting, gun physics
 - **🎮 Game Modes** (6 settings) - Casual/timed configuration, accuracy tracking
 - **🖼️ User Interface** (8 settings) - Menu styling, UI positioning
 - **⚡ Debug & Development** (2 settings) - Debug mode, collision detection
@@ -112,12 +112,12 @@ The configuration system uses a modular directory structure with enhanced securi
 
 All presets include automatic security validation and safe application:
 
-- **Realistic Mode** - High recoil (4.0x), immersive settings, slower recovery
-- **Arcade Mode** - Fast-paced movement, low recoil (1.0x), enhanced mechanics
-- **Precision Challenge** - Accuracy-focused, controlled movement, enhanced recoil
+- **Realistic Mode** - High vertical recoil (4.0x), immersive settings, slower recovery
+- **Arcade Mode** - Fast-paced movement, low vertical recoil (1.0x), enhanced mechanics
+- **Precision Challenge** - Accuracy-focused, controlled movement, vertical-only recoil
 - **Parkour Mode** - Movement-focused, enhanced sliding/wall-running mechanics
 - **Beginner Friendly** - Easy settings, reduced recoil, simplified mechanics
-- **Competitive Mode** - Balanced settings, consistent recoil patterns, performance tracking
+- **Competitive Mode** - Balanced settings, consistent vertical recoil patterns, performance tracking
 
 **Security Features:**
 - Input validation and sanitization for all preset names

@@ -135,6 +135,15 @@ SCORE_POSITION = (0, 0.4)        # Score display position
 ACCURACY_POSITION = (0.6, 0.4)   # Accuracy display position
 
 # ===============================================
+# === COLLISION & PHYSICS =======================
+# ===============================================
+
+HEAD_HEIGHT_OFFSET = Vec3(0, 1.8, 0)    # Offset for ceiling collision checks
+PLAYER_CENTER_OFFSET = Vec3(0, 0.9, 0)  # Offset to player center for collision detection
+COLLISION_BUFFER = 0.1                  # Safety buffer for collision detection
+GUN_DROP_COOLDOWN = 1.0                 # Cooldown between gun drops
+
+# ===============================================
 # === DEBUG & DEVELOPMENT ======================
 # ===============================================
 

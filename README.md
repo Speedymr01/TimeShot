@@ -4,13 +4,14 @@ A 3D first-person parkour shooter built with the Ursina engine, featuring advanc
 
 ## 🚀 Features
 
-- **Advanced Movement**: Sliding, dashing, wall running, momentum-based physics
-- **Target Shooting**: Precision shooting with recoil and accuracy tracking
-- **Two Game Modes**: Casual play and timed challenges
-- **3D Environment**: Custom maps with dynamic lighting and physics
-- **Streamlined Configuration**: 55 essential settings (reduced from 100+) with interactive tools
-- **Modular Architecture**: Clean separation into core, systems, and UI modules
-- **Security-Hardened**: Enterprise-level security for all configuration tools
+- **Advanced Movement Physics**: Momentum-based movement with sliding, dashing, and input-required wall running
+- **Precision Shooting**: Vertical recoil system with state-based multipliers and accuracy tracking
+- **Two Game Modes**: Casual play and 60-second timed challenges with scoring
+- **3D Environment**: Custom maps with dynamic lighting, shadows, and physics-based interactions
+- **Modular Architecture**: Clean separation into core, systems, and UI modules with safe cross-communication
+- **Security-Hardened**: Enterprise-level input validation, sanitization, and injection prevention
+- **Streamlined Configuration**: 58 essential settings with interactive tools and preset management
+- **Robust Error Handling**: Comprehensive error handling with graceful fallbacks across all systems
 
 ## 🎯 Quick Start
 
@@ -35,27 +36,47 @@ python scripts/run_tests.py
 
 ```
 3D-Parkour-Shooter/                # Project root
-├── 📁 src/                        # Source code
-│   ├── 📁 core/                   # Core components (player, weapons, input, utils)
-│   │   ├── input_handler.py       # Centralized input processing
-│   │   ├── player.py              # Player controller and movement
-│   │   ├── utils.py               # Core utility functions
-│   │   └── weapons.py             # Weapon mechanics and shooting
-│   ├── 📁 systems/                # Game systems (physics, targets, environment)
-│   │   ├── map_environment.py     # 3D environment and map management
-│   │   ├── physics.py             # Advanced movement physics
-│   │   ├── targets.py             # Target management system
-│   │   └── wall_running.py        # Wall running mechanics
-│   └── 📁 ui/                     # User interface (menus, game state)
-│       ├── game_state.py          # Game state and time tracking
-│       └── menu.py                # Menu system
-├── 📁 config/                     # Configuration files and presets
+├── 📁 src/                        # Source code modules
+│   ├── 📁 core/                   # Core game components
+│   │   ├── input_handler.py       # Centralized input processing with security validation
+│   │   ├── player.py              # Player controller with advanced movement physics
+│   │   ├── utils.py               # Core utility functions and collision detection
+│   │   └── weapons.py             # Weapon mechanics, shooting, and recoil system
+│   ├── 📁 systems/                # Game systems and mechanics
+│   │   ├── map_environment.py     # 3D environment, lighting, and map management
+│   │   ├── physics.py             # Advanced movement physics and momentum system
+│   │   ├── targets.py             # Target spawning and management system
+│   │   └── wall_running.py        # Wall running mechanics with input requirements
+│   └── 📁 ui/                     # User interface and game state
+│       ├── game_state.py          # Game modes, scoring, and time tracking
+│       └── menu.py                # Menu system and navigation
+├── 📁 config/                     # Configuration system
+│   ├── config.py                  # Main configuration with 55+ essential settings
+│   ├── presets/                   # Preset configurations with security validation
+│   └── __init__.py                # Configuration module initialization
 ├── 📁 tools/                      # Development and configuration tools
-├── 📁 tests/                      # Test suite (security, functionality)
+│   ├── config_tools.py            # Interactive configuration interface
+│   ├── config_validator.py        # Configuration validation with security checks
+│   ├── settings_editor.py         # Real-time settings editor
+│   └── security/                  # Security framework and validation
+├── 📁 tests/                      # Comprehensive test suite
+│   ├── security_tests.py          # Security validation tests (10/10 passing)
+│   └── __init__.py                # Test module initialization
+├── 📁 scripts/                    # Launch and utility scripts
+│   ├── run_game.py                # Game launcher script
+│   ├── run_config_tools.py        # Configuration tools launcher
+│   └── run_tests.py               # Test suite runner
+├── 📁 assets/                     # Game assets and resources
+│   ├── gun3.obj                   # 3D gun model
+│   ├── tutorial_map.obj           # Main game map
+│   ├── texture_01.png             # Environment texture
+│   ├── textures/                  # Texture assets
+│   └── sounds/                    # Audio assets
 ├── 📁 docs/                       # Documentation
-├── 📁 scripts/                    # Launch scripts
-├── 📁 assets/                     # Game assets (models, sounds, textures)
-└── main.py                        # Main game entry point
+│   └── CONFIG_README.md           # Configuration system documentation
+├── main.py                        # Main game entry point and initialization
+├── requirements.txt               # Python dependencies
+└── version.txt                    # Version tracking
 ```
 
 ## 🎮 Controls
@@ -100,13 +121,14 @@ The configuration system uses a modular directory structure with enhanced securi
 ### 📊 Configuration Categories (Essential Settings)
 
 - **🖥️ Display & Graphics** (2 settings) - FOV, texture filtering
-- **🔊 Audio Settings** (3 settings) - Volume controls, sound paths
-- **🏃 Player Settings** (9 settings) - Movement, camera, physics
-- **🏃‍♂️ Advanced Movement** (10 settings) - Sliding, dashing, wall running
-- **🔫 Weapon Systems** (15 settings) - Recoil (vertical-only), shooting, gun physics
-- **🎮 Game Modes** (6 settings) - Casual/timed configuration, accuracy tracking
-- **🖼️ User Interface** (8 settings) - Menu styling, UI positioning
-- **⚡ Debug & Development** (2 settings) - Debug mode, collision detection
+- **🔊 Audio Settings** (3 settings) - Master volume, SFX volume, gunshot sound path
+- **🏃 Player Settings** (9 settings) - Movement speed, gravity, jump height, camera settings
+- **🏃‍♂️ Advanced Movement** (10 settings) - Sliding mechanics, dash system, wall running physics
+- **🔫 Weapon Systems** (15 settings) - Recoil system, shooting mechanics, gun physics and positioning
+- **🎮 Game Modes** (6 settings) - Casual/timed mode configuration, scoring, accuracy tracking
+- **🖼️ User Interface** (8 settings) - Menu colors, fonts, UI element positioning
+- **⚙️ Collision & Physics** (4 settings) - Collision detection, physics buffers, cooldowns
+- **⚡ Debug & Development** (1 setting) - Debug mode toggle
 
 ### 🎯 Popular Configuration Presets
 
@@ -128,21 +150,27 @@ All presets include automatic security validation and safe application:
 ## 🎮 Input System
 
 ### 🔒 Secure Input Handler
-The centralized input handler (`src/core/input_handler.py`) provides:
+The centralized input handler (`src/core/input_handler.py`) provides enterprise-level security:
 
-- **Input Validation**: All key inputs are validated and sanitized before processing
-- **Length Limiting**: Input keys are limited to reasonable lengths (50 characters) to prevent abuse
-- **Injection Prevention**: Input sanitization prevents code injection attacks
+- **Input Validation**: All key inputs validated for type, length (50 char limit), and format
+- **Injection Prevention**: Input sanitization prevents code injection and malicious patterns
 - **Safe Module Access**: Uses `getattr()` with null checking for cross-module communication
 - **Comprehensive Error Handling**: Graceful fallback for missing modules or attributes
-- **Game State Awareness**: Context-sensitive input handling based on current game state
+- **Game State Awareness**: Context-sensitive input handling (menu vs gameplay modes)
+- **Cooldown Management**: Prevents input spam and abuse through timer validation
 
 ### 🎯 Input Processing Flow
-1. **Validation**: Input key is validated for type and length
-2. **Sanitization**: Key is stripped and checked for dangerous patterns
-3. **Module Safety**: All required game modules are safely imported and validated
-4. **Context Checking**: Input is processed based on current game state (menu vs gameplay)
-5. **Action Execution**: Validated actions are executed with comprehensive error handling
+1. **Validation**: Input key validated for type, length, and safety
+2. **Sanitization**: Key stripped and checked for dangerous patterns
+3. **Module Safety**: Game modules safely imported with error handling
+4. **Context Checking**: Input processed based on current game state
+5. **Action Execution**: Validated actions executed with comprehensive error handling
+6. **Cooldown Enforcement**: Timer-based restrictions prevent input abuse
+
+### 🎮 Supported Input Actions
+- **Shooting**: Left mouse click with recoil and accuracy tracking
+- **Gun Management**: 'R' key for drop/respawn with cooldown protection
+- **Menu Navigation**: Enter key for menu transitions with state validation
 
 ## 🛡️ Security Features
 
@@ -196,20 +224,34 @@ python tests/security_tests.py
 
 ## 🏃‍♂️ Advanced Movement Mechanics
 
-### 🛷 Sliding
-- **Trigger**: Hold Ctrl while sprinting
-- **Physics**: Maintains momentum, gains speed on slopes
-- **Chaining**: Combine with jumps and dashes
+### 🛷 Sliding System
+- **Trigger**: Hold Ctrl while sprinting (requires forward momentum)
+- **Physics**: Maintains momentum with slope-based acceleration
+- **Mechanics**: Friction-based deceleration with gravity influence on slopes
+- **Camera**: Dynamic camera lowering with smooth transitions
+- **Chaining**: Combine with jumps and dashes for complex movement
 
-### 💨 Dashing
-- **Trigger**: Press Q
-- **Direction**: Dash in camera look direction
-- **Versatility**: Works in air and on ground
+### 💨 Dash System
+- **Trigger**: Press Q (1-second cooldown)
+- **Direction**: Dash in camera look direction with separate horizontal/vertical components
+- **Physics**: Horizontal force boosted 1.5x, vertical force reduced for balance
+- **Versatility**: Works in air and on ground with different vertical constraints
+- **Speed Boost**: Temporary speed multiplier after dashing for momentum chaining
 
-### 🧗 Wall Running
-- **Trigger**: Hold W + A/D against walls
-- **Physics**: Defies gravity on vertical surfaces
-- **Momentum**: Jump off walls to maintain speed
+### 🧗 Wall Running System
+- **Input Requirements**: Must hold W (forward) + A (left wall) or W + D (right wall)
+- **Physics**: Complete gravity override with upward force and wall adhesion
+- **Speed Requirements**: Minimum horizontal speed threshold to initiate
+- **Camera Effects**: Dynamic camera tilting based on wall side
+- **Wall Kicks**: Strong kick-off force when releasing keys or pressing space
+- **Time Limit**: Maximum wall run duration with automatic termination
+
+### ⚡ Momentum Physics
+- **Acceleration**: Input-based acceleration with friction when no input
+- **Collision**: Surface sliding along walls instead of hard stops
+- **Air Control**: Reduced air resistance with maintained horizontal momentum
+- **Speed Capping**: Dynamic speed limits with dash boost allowances
+- **Ground Detection**: Proper grounded/airborne state management
 
 ## 📚 Documentation
 
@@ -217,32 +259,73 @@ python tests/security_tests.py
 - **[Project Structure](docs/PROJECT_STRUCTURE.md)** - Detailed structure guide
 - **[Security Report](docs/SECURITY_AUDIT_REPORT.md)** - Security audit and fixes
 
+## 🔫 Weapon System
+
+### 🎯 Shooting Mechanics
+- **Recoil System**: Vertical-only recoil patterns with state-based multipliers
+- **Recovery**: Smooth recoil recovery with configurable speed and duration
+- **State Modifiers**: Different recoil multipliers for standing, crouching, and moving
+- **Audio**: Validated gunshot sound with volume control and error handling
+- **Accuracy Tracking**: Shot counting and hit percentage calculation
+
+### 🔄 Gun Physics
+- **Drop System**: Physics-based gun dropping with gravity and momentum
+- **Respawn**: Timed gun respawning with cooldown protection
+- **Positioning**: Dynamic gun positioning relative to camera movement
+- **Collision**: Gun model collision detection and world interaction
+
+### 🎮 Weapon Controls
+- **Shooting**: Left mouse click with recoil feedback
+- **Drop/Respawn**: R key with cooldown timer (1-second default)
+- **Visual Feedback**: Gun model rotation matching camera pitch
+- **Error Handling**: Comprehensive error handling for missing assets
+
 ## 🔧 Development
 
 ### Recent Architecture Improvements
-- **✅ Streamlined Configuration**: Reduced configuration complexity from 100+ settings to 55 essential settings, removing unused performance optimization, advanced debug options, and legacy settings
-- **✅ Modular Architecture**: Complete separation into `core/`, `systems/`, and `ui/` modules with proper dependency management
-- **✅ Enhanced Game Systems**: Added `map_environment.py` for 3D environment management and `utils.py` for core utilities
-- **✅ Standardized Import Paths**: All modules use consistent, full import paths for better code organization
-- **✅ Enhanced Module Structure**: Cross-module communication follows established patterns with proper namespace resolution
-- **✅ Improved Maintainability**: Cleaner import structure makes the codebase easier to navigate and extend
-- **✅ Enhanced Game Initialization**: Proper startup sequence with game elements disabled during menu display for cleaner user experience
-- **✅ Robust Error Handling**: All cross-module imports include comprehensive error handling with graceful fallbacks
-- **✅ Consistent Attribute Checking**: Safe module access patterns using `hasattr()` and `getattr()` checks prevent runtime errors
-- **✅ Enhanced Input Handler Security**: Centralized input processing with comprehensive validation, sanitization, and error prevention
-- **✅ Global Reference System**: Improved cross-module communication using global references with proper null checking
+- **✅ Modular Architecture**: Complete separation into focused modules (`core/`, `systems/`, `ui/`) with proper dependency management
+- **✅ Streamlined Configuration**: Reduced from 100+ to 58 essential settings, removing unused legacy options
+- **✅ Enhanced Security**: Enterprise-level input validation, sanitization, and injection prevention throughout
+- **✅ Advanced Physics**: Momentum-based movement system with collision detection and surface sliding
+- **✅ Wall Running System**: Input-required wall running with physics integration and camera effects
+- **✅ Weapon System**: Complete recoil system with vertical-only patterns and recovery mechanics
+- **✅ Environment Management**: Dedicated 3D environment system with lighting and map management
+- **✅ Robust Error Handling**: Comprehensive error handling with graceful fallbacks across all modules
+- **✅ Safe Module Communication**: Global reference system with `getattr()` null checking patterns
+- **✅ Enhanced Game Initialization**: Proper startup sequence preventing visual artifacts during menu display
+- **✅ Centralized Input Processing**: Security-hardened input handler with validation and cooldown management
+- **✅ Target Management**: Improved target spawning with bounds checking and error prevention
+
+### 🏗️ Architecture Overview
+
+The game uses a modular architecture with clear separation of concerns:
+
+**Core Modules** (`src/core/`):
+- `player.py`: Player controller with advanced movement physics and state management
+- `weapons.py`: Weapon system with recoil, shooting mechanics, and gun physics
+- `input_handler.py`: Centralized, security-validated input processing
+- `utils.py`: Shared utility functions for collision detection and entity management
+
+**System Modules** (`src/systems/`):
+- `physics.py`: Momentum-based movement physics with collision handling
+- `wall_running.py`: Wall running mechanics with input requirements and camera effects
+- `targets.py`: Target spawning and management with bounds checking
+- `map_environment.py`: 3D environment, lighting, and map management
+
+**UI Modules** (`src/ui/`):
+- `game_state.py`: Game modes, scoring, timing, and state transitions
+- `menu.py`: Menu system with navigation and game mode selection
+
+**Global Communication**: Modules communicate through global references with safe `getattr()` patterns and comprehensive error handling.
 
 ### Adding New Features
-1. Create files in appropriate `src/` subdirectory:
-   - `core/` - Player mechanics, weapons, input handling, utilities
-   - `systems/` - Physics, targets, environment, advanced mechanics
-   - `ui/` - Menus, game state, user interface elements
-2. Use proper module imports (e.g., `import src.core.player as player`)
-3. Update imports in `main.py` and relevant modules
-4. Add configuration options to `config/config.py` (keep essential settings only)
-5. Follow proper initialization sequence (disable game elements before menu creation)
-6. Use global reference patterns with `getattr()` for safe cross-module access
-7. Test with security suite
+1. **Module Placement**: Create files in appropriate `src/` subdirectory based on functionality
+2. **Import Patterns**: Use standardized imports (e.g., `import src.core.player as player`)
+3. **Global References**: Set up global instances in `main.py` for cross-module access
+4. **Configuration**: Add settings to `config/config.py` with proper categorization
+5. **Error Handling**: Implement comprehensive error handling with graceful fallbacks
+6. **Security**: Validate all inputs and use safe module access patterns
+7. **Testing**: Run security test suite to ensure no vulnerabilities introduced
 
 **Import Best Practices:**
 - Always use full module paths for cross-module imports (e.g., `import src.core.module as module`)
@@ -261,16 +344,16 @@ python tests/security_tests.py
 - **Validation**: `if not all([obj1, obj2]): return`
 
 **Recent Updates:**
-- ✅ **Configuration Streamlining Complete** - Reduced from 100+ to 55 essential settings, removing unused performance optimization, advanced debug options, and legacy settings from config.py
-- ✅ **Modular Architecture Enhancement** - Complete restructure into focused modules: `core/` (player, weapons, input, utils), `systems/` (physics, targets, environment), `ui/` (menus, game state)
-- ✅ **Import Path Standardization Complete** - All cross-module imports now use proper module paths (e.g., `import src.ui.menu as menu`)
-- ✅ **Enhanced Module Structure** - Consistent import patterns across all game systems for better maintainability
-- ✅ **Environment System Addition** - New `map_environment.py` module for comprehensive 3D environment and map management
-- ✅ **Core Utilities Integration** - Added `utils.py` for shared utility functions across the game systems
-- ✅ **Improved Startup Sequence** - Game elements are now properly disabled during initialization to prevent visual artifacts and ensure clean menu presentation
-- ✅ **Robust Cross-Module Communication** - All modules now use standardized import patterns with proper error handling and attribute checking
-- ✅ **Enhanced Input Handler** - Centralized input processing with comprehensive security validation, sanitization, and graceful error handling
-- ✅ **Global Reference Architecture** - Improved module communication using `getattr()` with null checking for safer cross-module access
+- ✅ **Modular Architecture Complete** - Full restructure into `core/`, `systems/`, and `ui/` modules with proper separation of concerns
+- ✅ **Configuration Optimization** - Streamlined to 58 essential settings, removing unused legacy options and performance settings
+- ✅ **Advanced Physics Integration** - Momentum-based movement with collision detection, surface sliding, and airborne mechanics
+- ✅ **Wall Running System** - Input-required wall running with physics integration, camera tilting, and wall kick mechanics
+- ✅ **Enhanced Weapon System** - Complete recoil system with vertical patterns, recovery mechanics, and state-based multipliers
+- ✅ **Security Hardening** - Enterprise-level input validation, sanitization, and injection prevention across all systems
+- ✅ **Environment Management** - Dedicated 3D environment system with lighting, shadows, and map management
+- ✅ **Robust Error Handling** - Comprehensive error handling with graceful fallbacks and safe module access patterns
+- ✅ **Centralized Input Processing** - Security-validated input handler with cooldown management and state awareness
+- ✅ **Global Reference System** - Safe cross-module communication using `getattr()` with null checking and error prevention
 
 ### Custom Configuration
 1. Use security-hardened settings editor: `python tools/settings_editor_secure.py`
@@ -289,22 +372,35 @@ python tests/security_tests.py
 ## 🐛 Troubleshooting
 
 ### Game Won't Start
-- Verify Python 3.8+ installed
-- Install Ursina: `pip install ursina`
-- Check all files present in correct directories
+- **Dependencies**: Verify Python 3.8+ and install Ursina: `pip install ursina`
+- **File Structure**: Ensure all `src/` modules are present in correct directories
+- **Assets**: Check that `assets/` folder contains required models and textures
+- **Import Errors**: Verify all module imports in `main.py` are successful
+
+### Module Import Issues
+- **Missing Modules**: Check that all files in `src/core/`, `src/systems/`, and `src/ui/` exist
+- **Path Issues**: Ensure Python path includes project root directory
+- **Circular Imports**: Module structure prevents circular imports with global references
+- **Error Messages**: Check console for specific import error details
 
 ### Performance Issues
-- Use configuration tools to lower graphics settings
-- Try "Low Quality" preset in settings examples
-- Reduce `RENDER_DISTANCE` and `MAX_PARTICLES`
+- **Graphics Settings**: Use configuration tools to adjust FOV and texture filtering
+- **Asset Loading**: Verify 3D models and textures load without errors
+- **Physics**: Reduce collision detection frequency if experiencing lag
+- **Memory**: Monitor memory usage during extended play sessions
 
 ### Configuration Issues
-- Run security-enhanced validator: `python tools/config_validator.py`
-- Validator automatically locates config files with path validation
-- Check `security.log` for detailed security event logs
-- Reset to defaults using validated presets in `config/presets/`
-- Use fallback mode if security modules are unavailable
-- All configuration changes are logged for audit trails
+- **Validator**: Run `python tools/config_validator.py` for comprehensive validation
+- **Security**: Check for security validation errors in configuration files
+- **Presets**: Use validated presets in `config/presets/` to reset settings
+- **Missing Constants**: Ensure all required constants are defined in `config/config.py`
+- **Type Errors**: Verify configuration values match expected types (int, float, Vec3)
+
+### Input/Control Issues
+- **Input Handler**: Check `src/core/input_handler.py` for input processing errors
+- **Key Validation**: Ensure input keys are properly validated and sanitized
+- **Cooldowns**: Verify cooldown timers are functioning for actions like gun drop
+- **State Management**: Check that game state properly enables/disables input processing
 
 ## 📊 Performance Specifications
 
@@ -313,7 +409,7 @@ python tests/security_tests.py
 - **Storage**: ~150MB (including assets)
 - **Graphics**: Supports integrated graphics
 - **Platforms**: Windows, Linux, macOS
-- **Version**: pre-25m10-1 (Streamlined Configuration Release)
+- **Version**: pre-25m10-3 (Pre-release Development Build)
 
 ## 🤝 Contributing
 

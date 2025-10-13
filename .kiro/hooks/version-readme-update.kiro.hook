@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Version README Updater",
+  "description": "Monitors version.txt for changes and updates the README.md file to reflect the new version of the parkour shooter game",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "version.txt"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The version.txt file has been updated. Please read the new version number from version.txt and update the README.md file to reflect this new version of the 3D first-person parkour shooter game. Make sure to update any version references, release notes, or version-specific information in the README while maintaining the existing structure and content."
+  }
+}

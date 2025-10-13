@@ -26,19 +26,39 @@ Engine: Ursina (Python 3D game engine)
 """
 
 from ursina import *
+import sys
+import os
 
-# Import all game modules
-from config import *
-from utils import *
-from player import PlayerController
-from weapons import WeaponController
-from targets import TargetManager
-from game_state import GameState
-from menu import MenuSystem
-from map_environment import MapEnvironment
-from wall_running import *
-from physics import *
-import input_handler  # This sets up the global input function
+# Add src directory to Python path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'config'))
+
+# Import all game modules with error handling
+try:
+    from config import *
+    from core.utils import *
+except ImportError as e:
+    print(f"❌ Error importing core modules: {e}")
+    print("Please ensure all required files are present.")
+    sys.exit(1)
+
+try:
+    from core.player import PlayerController
+    from core.weapons import WeaponController
+    from systems.targets import TargetManager
+    from ui.game_state import GameState
+    from ui.menu import MenuSystem
+    from systems.map_environment import MapEnvironment
+    from systems.wall_running import *
+    from systems.physics import *
+    from core.input_handler import input  # Import the input function so Ursina can use it
+except ImportError as e:
+    print(f"❌ Error importing game modules: {e}")
+    print("Please ensure all game files are present and properly configured.")
+    print(f"Current working directory: {os.getcwd()}")
+    print(f"Python path: {sys.path}")
+    sys.exit(1)
+    sys.exit(1)
 
 # ===============================================
 # === GAME INITIALIZATION ======================
@@ -55,12 +75,12 @@ target_manager = TargetManager()
 game_state = GameState()
 
 # Make systems globally accessible BEFORE creating menu
-import player
-import weapons
-import targets
-import game_state as gs
-import menu
-import map_environment as me
+import src.core.player as player
+import src.core.weapons as weapons
+import src.systems.targets as targets
+import src.ui.game_state as gs
+import src.ui.menu as menu
+import src.systems.map_environment as me
 
 player.player_controller = player_controller
 weapons.weapon_controller = weapon_controller
@@ -68,9 +88,18 @@ targets.target_manager = target_manager
 gs.game_state = game_state
 me.map_environment = map_environment
 
-# Initialize menu system AFTER setting global references
+# Disable game elements initially (before menu creation)
+player_controller.player.enabled = False
+weapon_controller.gun_model.enabled = False
+weapon_controller.gun_equipped = False
+map_environment.hide_game()
+
+# Initialize menu system AFTER setting global references and hiding game
 menu_system = MenuSystem()
 menu.menu_system = menu_system
+
+# Show the menu by default when game starts
+menu_system.show_menu()
 
 # ===============================================
 # === MAIN UPDATE LOOP =========================

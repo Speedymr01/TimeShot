@@ -1,12 +1,16 @@
 # 🎮 3D First-Person Parkour Shooter
+**Version: pre-25m10-4**
 
 A 3D first-person parkour shooter built with the Ursina engine, featuring advanced movement mechanics, target shooting, and a comprehensive configuration system with enterprise-level security.
 
 ## 🚀 Features
 
-- **Advanced Movement Physics**: Momentum-based movement with sliding, dashing, and input-required wall running
+- **Advanced Movement Physics**: Momentum-based movement with sliding, dashing, wall running, and grappling mechanics
+- **Enhanced Jump System**: Variable jump height with coyote time, jump buffering, and enhanced air control
+- **Grappling Hook**: Physics-based grappling system with visual feedback and momentum preservation
 - **Precision Shooting**: Vertical recoil system with state-based multipliers and accuracy tracking
 - **Two Game Modes**: Casual play and 60-second timed challenges with scoring
+- **High-Quality Graphics**: Advanced antialiasing, texture filtering, and visual quality settings
 - **3D Environment**: Custom maps with dynamic lighting, shadows, and physics-based interactions
 - **Modular Architecture**: Clean separation into core, systems, and UI modules with safe cross-communication
 - **Security-Hardened**: Enterprise-level input validation, sanitization, and injection prevention
@@ -92,6 +96,7 @@ python scripts/run_tests.py
 | **Shoot** | Left Click | Fire weapon |
 | **Drop Gun** | R | Drop and respawn weapon |
 | **Wall Run** | W + A/D | Run on walls |
+| **Grapple** | Right Click | Fire grappling hook |
 | **Quit** | Escape | Exit game |
 
 ## ⚙️ Configuration System
@@ -120,11 +125,11 @@ The configuration system uses a modular directory structure with enhanced securi
 
 ### 📊 Configuration Categories (Essential Settings)
 
-- **🖥️ Display & Graphics** (2 settings) - FOV, texture filtering
+- **🖥️ Display & Graphics** (12 settings) - FOV, antialiasing, texture filtering, VSync, mipmapping, anisotropic filtering, texture quality
 - **🔊 Audio Settings** (3 settings) - Master volume, SFX volume, gunshot sound path
-- **🏃 Player Settings** (9 settings) - Movement speed, gravity, jump height, camera settings
+- **🏃 Player Settings** (15 settings) - Movement speed, gravity, jump system (height, buffering, coyote time, variable height), camera settings, air control
 - **🏃‍♂️ Advanced Movement** (10 settings) - Sliding mechanics, dash system, wall running physics
-- **🔫 Weapon Systems** (15 settings) - Recoil system, shooting mechanics, gun physics and positioning
+- **🔫 Weapon Systems** (20 settings) - Recoil system, shooting mechanics, gun physics, grappling hook system with physics integration
 - **🎮 Game Modes** (6 settings) - Casual/timed mode configuration, scoring, accuracy tracking
 - **🖼️ User Interface** (8 settings) - Menu colors, fonts, UI element positioning
 - **⚙️ Collision & Physics** (4 settings) - Collision detection, physics buffers, cooldowns
@@ -274,8 +279,16 @@ python tests/security_tests.py
 - **Positioning**: Dynamic gun positioning relative to camera movement
 - **Collision**: Gun model collision detection and world interaction
 
+### 🪝 Grappling Hook System
+- **Physics Integration**: Realistic grappling physics with momentum preservation
+- **Visual Feedback**: Dynamic grapple line rendering with hook point indicators
+- **Gravity Reduction**: Reduced gravity while grappling for enhanced mobility
+- **Range Limitation**: Configurable grapple range with cable physics constraints
+- **Force Application**: Pull forces toward grapple point with upward compensation
+
 ### 🎮 Weapon Controls
 - **Shooting**: Left mouse click with recoil feedback
+- **Grappling**: Right mouse click to fire grappling hook
 - **Drop/Respawn**: R key with cooldown timer (1-second default)
 - **Visual Feedback**: Gun model rotation matching camera pitch
 - **Error Handling**: Comprehensive error handling for missing assets
@@ -343,7 +356,12 @@ The game uses a modular architecture with clear separation of concerns:
 - **Safe Access**: `obj = getattr(module, 'instance_name', None)`
 - **Validation**: `if not all([obj1, obj2]): return`
 
-**Recent Updates:**
+**Recent Updates (Version pre-25m10-4):**
+- ✅ **Enhanced Grappling System** - Added grappling hook mechanics with physics integration and visual feedback
+- ✅ **Advanced Graphics Settings** - Comprehensive antialiasing, texture filtering, and visual quality options
+- ✅ **Improved Physics Engine** - Enhanced collision detection with multi-step movement and surface sliding
+- ✅ **Jump System Overhaul** - Variable jump height, coyote time, jump buffering, and enhanced air control
+- ✅ **Texture Quality Management** - Dynamic texture quality settings with mipmapping and anisotropic filtering
 - ✅ **Modular Architecture Complete** - Full restructure into `core/`, `systems/`, and `ui/` modules with proper separation of concerns
 - ✅ **Configuration Optimization** - Streamlined to 58 essential settings, removing unused legacy options and performance settings
 - ✅ **Advanced Physics Integration** - Momentum-based movement with collision detection, surface sliding, and airborne mechanics
@@ -409,7 +427,7 @@ The game uses a modular architecture with clear separation of concerns:
 - **Storage**: ~150MB (including assets)
 - **Graphics**: Supports integrated graphics
 - **Platforms**: Windows, Linux, macOS
-- **Version**: pre-25m10-3 (Pre-release Development Build)
+- **Version**: pre-25m10-4 (Pre-release Development Build - Latest)
 
 ## 🤝 Contributing
 

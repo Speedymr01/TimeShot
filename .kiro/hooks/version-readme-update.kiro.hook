@@ -11,6 +11,6 @@
   },
   "then": {
     "type": "askAgent",
-    "prompt": "The version.txt file has been updated. Please read the new version number from version.txt and update the README.md file to reflect this new version of the 3D first-person parkour shooter game. Make sure to update any version references, release notes, or version-specific information in the README. Make sure all new content is added to the README."
+    "prompt": "The version.txt file has been updated. Please read the new version number from version.txt and update the README.md file to reflect this new version of the 3D first-person parkour shooter game. Make sure to update any version references, release notes, or version-specific information in the README. Make sure all new content is added to the README. update the content too."
   }
 }

@@ -31,6 +31,13 @@ class WeaponController:
         self.recoil_offset = Vec3(0, 0, 0)
         self.base_camera_rotation = Vec3(0, 0, 0)
         
+        # Grappling hook system
+        self.grapple_active = False
+        self.grapple_point = None
+        self.grapple_line = None
+        self.grapple_timer = 0
+        self.grapple_hook_entity = None
+        
         # Load gunshot sound with validation
         try:
             from pathlib import Path
@@ -88,7 +95,9 @@ class WeaponController:
     def update_timers(self):
         """Update weapon-related timers."""
         self.gun_drop_timer = max(self.gun_drop_timer - time.dt, 0)
+        self.grapple_timer = max(self.grapple_timer - time.dt, 0)
         self.update_recoil()
+        self.update_grapple()
     
     def update_recoil(self):
         """Update recoil recovery over time."""
@@ -264,6 +273,151 @@ class WeaponController:
             self.gun_equipped = True
 
         invoke(spawn_new_gun, delay=GUN_RESPAWN_TIME)
+    
+    def fire_grapple(self):
+        """Fire grappling hook in the direction the player is looking."""
+        if not GRAPPLE_ENABLED or self.grapple_timer > 0:
+            return False
+        
+        # Don't fire if grapple is already active
+        if self.grapple_active:
+            return False
+        
+        # Raycast to find grapple target
+        try:
+            hit_info = raycast(
+                origin=camera.world_position,
+                direction=camera.forward,
+                distance=GRAPPLE_RANGE,
+                ignore=[self.player_controller.player, self.player_controller.player_model]
+            )
+            
+            if hit_info and hit_info.hit and hit_info.entity:
+                # Valid grapple target found
+                self.grapple_point = hit_info.point
+                self.grapple_active = True
+                self.create_grapple_line()
+                self.grapple_timer = GRAPPLE_COOLDOWN
+                print(f"Grapple attached at distance: {distance(camera.world_position, self.grapple_point):.1f}")
+                return True
+            else:
+                # No valid target
+                print("No grapple target found")
+                return False
+                
+        except Exception as e:
+            print(f"Error firing grapple: {e}")
+            return False
+    
+    def create_grapple_line(self):
+        """Create visual grapple line from gun to grapple point."""
+        try:
+            if self.grapple_point:
+                # Create grapple line entity
+                self.grapple_line = Entity(
+                    model='cube',
+                    color=GRAPPLE_LINE_COLOR,
+                    scale=(GRAPPLE_LINE_THICKNESS, GRAPPLE_LINE_THICKNESS, 1),
+                    unlit=True
+                )
+                
+                # Create grapple hook point indicator
+                self.grapple_hook_entity = Entity(
+                    model='sphere',
+                    color=GRAPPLE_LINE_COLOR,
+                    scale=0.2,
+                    position=self.grapple_point,
+                    unlit=True
+                )
+                
+        except Exception as e:
+            print(f"Error creating grapple line: {e}")
+    
+    def update_grapple(self):
+        """Update grapple line position and apply grapple physics."""
+        if not self.grapple_active or not self.grapple_point:
+            return
+        
+        try:
+            # Update grapple line visual
+            if self.grapple_line:
+                # Calculate line position and rotation
+                gun_pos = self.gun_model.world_position if self.gun_model else camera.world_position
+                grapple_pos = self.grapple_point
+                
+                # Position line at midpoint
+                midpoint = (gun_pos + grapple_pos) / 2
+                self.grapple_line.position = midpoint
+                
+                # Scale line to match distance
+                line_distance = distance(gun_pos, grapple_pos)
+                self.grapple_line.scale = (GRAPPLE_LINE_THICKNESS, GRAPPLE_LINE_THICKNESS, line_distance)
+                
+                # Rotate line to point from gun to grapple point
+                self.grapple_line.look_at(grapple_pos)
+            
+            # Apply grapple physics to player
+            self.apply_grapple_physics()
+            
+        except Exception as e:
+            print(f"Error updating grapple: {e}")
+            self.release_grapple()
+    
+    def apply_grapple_physics(self):
+        """Apply physics forces when grappling."""
+        if not self.grapple_active or not self.grapple_point:
+            return
+        
+        try:
+            player_pos = self.player_controller.player.position
+            grapple_distance = distance(player_pos, self.grapple_point)
+            
+            # Calculate direction from player to grapple point
+            direction = (self.grapple_point - player_pos).normalized()
+            
+            # Apply pull force towards grapple point
+            pull_force = direction * GRAPPLE_PULL_FORCE * time.dt
+            
+            # Add to player's movement velocity
+            self.player_controller.movement_velocity += pull_force
+            
+            # Add some upward force to counteract remaining gravity while grappling
+            if direction.y > 0:  # Only if grappling upward
+                # Compensate for reduced but not eliminated gravity
+                gravity_compensation = (1.0 - GRAPPLE_GRAVITY_REDUCTION) * 9.8 * PLAYER_GRAVITY * time.dt
+                self.player_controller.movement_velocity.y += gravity_compensation
+                # Add additional upward pull force
+                self.player_controller.movement_velocity.y += abs(direction.y) * GRAPPLE_PULL_FORCE * 0.3 * time.dt
+            
+            # Limit maximum grapple distance (cable physics)
+            max_cable_length = GRAPPLE_RANGE * 0.8  # 80% of max range
+            if grapple_distance > max_cable_length:
+                # Pull player back if they get too far
+                constraint_force = direction * (grapple_distance - max_cable_length) * 2
+                self.player_controller.movement_velocity += constraint_force * time.dt
+            
+        except Exception as e:
+            print(f"Error applying grapple physics: {e}")
+    
+    def release_grapple(self):
+        """Release the grappling hook and clean up."""
+        try:
+            self.grapple_active = False
+            self.grapple_point = None
+            
+            # Clean up visual elements
+            if self.grapple_line:
+                destroy(self.grapple_line)
+                self.grapple_line = None
+            
+            if self.grapple_hook_entity:
+                destroy(self.grapple_hook_entity)
+                self.grapple_hook_entity = None
+            
+            print("Grapple released")
+            
+        except Exception as e:
+            print(f"Error releasing grapple: {e}")
 
 # Global weapon controller (will be initialized in main.py)
 weapon_controller = None

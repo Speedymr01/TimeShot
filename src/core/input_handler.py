@@ -81,6 +81,26 @@ def input(key):
             except Exception as e:
                 print(f"Error during shooting: {e}")
     
+    # Handle grappling hook input
+    if key == 'right mouse down':
+        if hasattr(weapon_controller, 'gun_equipped') and weapon_controller.gun_equipped:
+            try:
+                weapon_controller.fire_grapple()
+            except AttributeError as e:
+                print(f"Error during grappling - missing attribute: {e}")
+            except Exception as e:
+                print(f"Error during grappling: {e}")
+    
+    # Handle grappling hook release
+    if key == 'right mouse up':
+        if hasattr(weapon_controller, 'grapple_active') and weapon_controller.grapple_active:
+            try:
+                weapon_controller.release_grapple()
+            except AttributeError as e:
+                print(f"Error releasing grapple - missing attribute: {e}")
+            except Exception as e:
+                print(f"Error releasing grapple: {e}")
+    
     # Handle gun drop input with cooldown check
     if key == 'r':
         try:

@@ -46,10 +46,27 @@ GUNSHOT_SOUND = './assets/sounds/gunshot.mp3'
 # ===============================================
 
 # === Basic Movement ===
-PLAYER_GRAVITY = 0.5              # Gravity multiplier for player
-PLAYER_JUMP_HEIGHT = 2            # Maximum jump height in units
+PLAYER_GRAVITY = 0.4              # Gravity multiplier for player (increased for snappier feel)
+PLAYER_JUMP_HEIGHT = 2.2          # Maximum jump height in units (reduced for quicker jumps)
 PLAYER_SPEED = 5                  # Base movement speed (legacy)
 SPRINT_MULTIPLIER = 1.8           # Speed multiplier when sprinting
+
+# === Jump Speed System ===
+JUMP_SPEED_BOOST = 1.0            # Horizontal speed multiplier when jumping (reduced for smoother feel)
+JUMP_SPEED_DURATION = 0.5         # How long jump speed boost lasts (seconds) (increased for smoother transition)
+JUMP_SPEED_PRESERVE = True        # Preserve momentum from previous movement
+JUMP_SPEED_DIRECTIONAL = True     # Apply boost in jump direction vs movement direction (enabled for better control)
+
+# === Jump Feel Enhancement ===
+JUMP_BUFFER_TIME = 0.1            # Jump input buffer time (seconds)
+COYOTE_TIME = 0.15                # Grace period after leaving ground (seconds)
+JUMP_CUT_ENABLED = True           # Allow cutting jump short by releasing space
+JUMP_CUT_MULTIPLIER = 0.5         # How much to reduce upward velocity when cutting jump
+
+# === Air Control Enhancement ===
+AIR_CONTROL_MULTIPLIER = 0.2      # How much control you have in air (0.0 = none, 1.0 = full)
+AIR_ACCELERATION = 5             # Acceleration in air (lower than ground for realism)
+AIR_FRICTION = 0                  # Air resistance (lower than ground friction)
 
 # === Player Physics ===
 PLAYER_HEIGHT = 1.8               # Player height in units
@@ -73,7 +90,7 @@ SLIDE_FRICTION = 6                # How quickly slide velocity decreases
 SLIDE_START_VELOCITY = 40         # Initial velocity when starting slide
 SLIDE_COOLDOWN = 2.0              # Seconds before can slide again
 SLIDE_CAMERA_Y = 1.0              # Camera height when sliding (crouched)
-GRAVITY_FORCE = 20.0              # Additional gravity force on slopes during slide
+GRAVITY_FORCE = 10.0              # Additional gravity force on slopes during slide
 
 # === Dash System ===
 DASH_COOLDOWN = 1.0               # Seconds between dash uses
@@ -85,6 +102,7 @@ WALL_RUN_MIN_SPEED = 6            # Minimum speed required to start wall running
 WALL_RUN_MAX_TIME = 8.0           # Maximum time you can wall run (seconds)
 WALL_RUN_JUMP_FORCE = 20          # Force applied when jumping off wall
 WALL_RUN_CAMERA_TILT = 15         # Camera tilt angle during wall run (degrees)
+WALL_END_MOMENTUM_KICK = 20       # Momentum multiplier when wall ends naturally (1.0 = no boost)
 
 # ===============================================
 # === WEAPON SYSTEMS ===========================
@@ -115,6 +133,16 @@ RECOIL_PATTERN_ENABLED = False    # Use predictable recoil pattern
 RECOIL_MULTIPLIER_STANDING = 1.0  # Recoil multiplier when standing
 RECOIL_MULTIPLIER_CROUCHING = 0.7 # Recoil multiplier when crouching
 RECOIL_MULTIPLIER_MOVING = 1.3    # Recoil multiplier when moving
+
+# === Grappling Hook System ===
+GRAPPLE_ENABLED = True            # Enable grappling hook
+GRAPPLE_RANGE = 50                # Maximum grapple range in units
+GRAPPLE_SPEED = 30                # Speed of grapple line deployment
+GRAPPLE_PULL_FORCE = 75           # Force applied when grappling
+GRAPPLE_LINE_COLOR = color.black  # Color of grapple line
+GRAPPLE_LINE_THICKNESS = 0.1      # Thickness of grapple line
+GRAPPLE_COOLDOWN = 0.01            # Cooldown between grapple uses (seconds)
+GRAPPLE_GRAVITY_REDUCTION = 0.5   # Gravity multiplier when grappling (0.0 = no gravity, 1.0 = full gravity)
 
 # ===============================================
 # === COLLISION & PHYSICS =======================
@@ -158,8 +186,13 @@ ACCURACY_POSITION = (0.6, 0.4)   # Accuracy display position
 
 HEAD_HEIGHT_OFFSET = Vec3(0, 1.8, 0)    # Offset for ceiling collision checks
 PLAYER_CENTER_OFFSET = Vec3(0, 0.9, 0)  # Offset to player center for collision detection
-COLLISION_BUFFER = 0.1                  # Safety buffer for collision detection
+COLLISION_BUFFER = 0.2                  # Safety buffer for collision detection (increased)
 GUN_DROP_COOLDOWN = 1.0                 # Cooldown between gun drops
+
+# === Enhanced Collision Prevention ===
+MAX_MOVEMENT_STEP = 0.5                 # Maximum movement per physics step (prevents clipping)
+COLLISION_CORRECTION_ENABLED = True     # Enable automatic position correction
+COLLISION_PUSH_DISTANCE = 0.5           # Distance to push player when stuck in geometry
 
 # ===============================================
 # === DEBUG & DEVELOPMENT ======================

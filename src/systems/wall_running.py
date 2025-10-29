@@ -103,23 +103,35 @@ def detect_wall_for_running(player_controller):
 
 def apply_wall_running_physics(player_controller):
     """
-    Apply physics while wall running - requires holding correct input keys.
+    Apply physics while wall running - continues automatically once started.
     """
-    # Note: Key release handling is now done in handle_wall_running() 
-    # to allow for kick effect before stopping
+    # Wall running now continues until wall ends or player jumps
     
-    # COMPLETELY override vertical movement - no gravity at all
-    player_controller.movement_velocity.y = 0  # Reset any existing vertical velocity
+    # Completely disable Ursina's built-in physics during wall running
+    disable_ursina_physics(player_controller)
     
-    # Apply strong upward force to stick to wall
-    player_controller.movement_velocity.y += 8.0 * time.dt
+    # COMPLETELY eliminate slipping - override ALL vertical movement
+    # Disable Ursina's built-in gravity during wall running
+    player_controller.player.velocity_y = 0
+    player_controller.movement_velocity.y = 0
     
-    # Cap vertical velocity
-    player_controller.movement_velocity.y = max(-2, min(8, player_controller.movement_velocity.y))
+    # Force zero vertical velocity in the Ursina controller
+    if hasattr(player_controller.player, 'velocity'):
+        player_controller.player.velocity = Vec3(player_controller.player.velocity.x, 0, player_controller.player.velocity.z)
+    
+    # Optional: Allow slight vertical movement based on look direction
+    forward_dir = camera.forward.normalized()
+    vertical_control = 0
+    if forward_dir.y > 0.1:  # Looking up
+        vertical_control = forward_dir.y * WALL_RUN_SPEED * 0.3
+    elif forward_dir.y < -0.1:  # Looking down
+        vertical_control = forward_dir.y * WALL_RUN_SPEED * 0.3
+    
+    # Apply vertical control directly to position instead of velocity
+    if abs(vertical_control) > 0.01:
+        player_controller.player.position += Vec3(0, vertical_control * time.dt, 0)
     
     # Calculate movement along the wall with consistent horizontal speed
-    forward_dir = camera.forward.normalized()
-    
     # Get horizontal component of look direction (ignore Y)
     horizontal_forward = Vec3(forward_dir.x, 0, forward_dir.z)
     
@@ -141,25 +153,61 @@ def apply_wall_running_physics(player_controller):
         wall_right = Vec3(-player_controller.wall_normal.z, 0, player_controller.wall_normal.x).normalized()
         horizontal_velocity = wall_right * WALL_RUN_SPEED * 0.5  # Reduced speed when no clear direction
     
-    # Add miniscule vertical component based on look direction
-    vertical_influence = forward_dir.y * WALL_RUN_SPEED * 0.1  # 10% of speed as vertical influence
-    
     # DIRECTLY set horizontal velocity (no lerping - immediate response)
     player_controller.movement_velocity.x = horizontal_velocity.x
     player_controller.movement_velocity.z = horizontal_velocity.z
-    
-    # Add small vertical influence to the existing upward force
-    player_controller.movement_velocity.y += vertical_influence * time.dt
     
     # Extremely strong inward force to stick to wall
     stick_force = player_controller.wall_normal * -20.0 * time.dt
     player_controller.movement_velocity.x += stick_force.x
     player_controller.movement_velocity.z += stick_force.z
     
-    # Apply movement directly to player position
-    player_controller.player.position += player_controller.movement_velocity * time.dt
+    # Apply movement directly to player position, bypassing Ursina's physics
+    movement_step = Vec3(
+        player_controller.movement_velocity.x * time.dt,
+        0,  # Force zero vertical movement
+        player_controller.movement_velocity.z * time.dt
+    )
+    player_controller.player.position += movement_step
     
-    print(f"Wall running - Y vel: {player_controller.movement_velocity.y:.2f}, Speed: {math.sqrt(player_controller.movement_velocity.x**2 + player_controller.movement_velocity.z**2):.2f}, Keys: W+{'D' if player_controller.wall_run_side == 1 else 'A'}")
+    # Ensure Ursina's controller doesn't interfere
+    player_controller.player.velocity_y = 0
+    if hasattr(player_controller.player, 'velocity'):
+        player_controller.player.velocity = Vec3(0, 0, 0)
+    
+    print(f"Wall running - No slip mode - Y vel: {player_controller.movement_velocity.y:.2f}, Speed: {math.sqrt(player_controller.movement_velocity.x**2 + player_controller.movement_velocity.z**2):.2f}")
+
+def disable_ursina_physics(player_controller):
+    """Completely disable Ursina's built-in physics during wall running."""
+    try:
+        # Disable gravity
+        player_controller.player.gravity = 0
+        
+        # Zero out all Ursina velocities
+        player_controller.player.velocity_y = 0
+        if hasattr(player_controller.player, 'velocity'):
+            player_controller.player.velocity = Vec3(0, 0, 0)
+        
+        # Disable Ursina's movement processing
+        if hasattr(player_controller.player, 'grounded'):
+            player_controller.player.grounded = True  # Trick Ursina into thinking we're grounded
+            
+    except AttributeError:
+        pass  # Some attributes might not exist in all Ursina versions
+
+def restore_ursina_physics(player_controller):
+    """Restore Ursina's built-in physics after wall running."""
+    try:
+        # Restore gravity
+        player_controller.player.gravity = PLAYER_GRAVITY
+        
+        # Allow Ursina to process movement again
+        if hasattr(player_controller.player, 'grounded'):
+            # Let Ursina determine grounded state naturally
+            pass
+            
+    except AttributeError:
+        pass
 
 def handle_wall_running(player_controller):
     """Handle wall running detection and state management."""
@@ -172,7 +220,7 @@ def handle_wall_running(player_controller):
             player_controller.wall_normal = detected_normal
             player_controller.wall_run_side = detected_side
             player_controller.wall_run_timer = 0.0
-            print(f"Started wall running on {'right' if detected_side == 1 else 'left'} wall - Hold W+{'D' if detected_side == 1 else 'A'} to continue - Speed: {math.sqrt(player_controller.movement_velocity.x**2 + player_controller.movement_velocity.z**2):.1f}")
+            print(f"Started wall running on {'right' if detected_side == 1 else 'left'} wall - Press SPACE to jump off - Speed: {math.sqrt(player_controller.movement_velocity.x**2 + player_controller.movement_velocity.z**2):.1f}")
     
     else:
         # Continue wall running
@@ -181,35 +229,15 @@ def handle_wall_running(player_controller):
         # Check if we should stop wall running
         should_stop = False
         
-        # Stop if timer exceeded
-        if player_controller.wall_run_timer > WALL_RUN_MAX_TIME:
-            should_stop = True
+        # ONLY stop wall running if:
+        # 1. Wall ends (no longer near wall)
+        # 2. Player presses space to jump
         
-        # Stop if we hit the ground
-        if player_controller.player.grounded:
-            should_stop = True
-        
-        # Stop if player releases required keys - apply kick effect
-        if not check_wall_running_input(player_controller.wall_run_side):
-            # Apply wall kick when releasing keys (same as space jump)
-            jump_direction = player_controller.wall_normal.normalized()
-            
-            # Strong horizontal kick away from wall
-            kick_force = WALL_RUN_JUMP_FORCE * 1.5
-            player_controller.movement_velocity.x = jump_direction.x * kick_force
-            player_controller.movement_velocity.z = jump_direction.z * kick_force
-            
-            # Strong upward component
-            player_controller.movement_velocity.y = WALL_RUN_JUMP_FORCE * 1.2
-            
-            should_stop = True
-            print(f"Wall kick from key release! Kicked away from {'right' if player_controller.wall_run_side == 1 else 'left'} wall with force {kick_force:.1f}")
-        
-        # Stop if we're no longer near the wall (more forgiving check)
+        # Check if wall still exists
         check_direction = camera.right if player_controller.wall_run_side == 1 else -camera.right
         wall_still_there = False
         
-        # Check multiple points to be more forgiving
+        # Check multiple points to detect wall end
         for height_offset in [0.5, 1.0, 1.5]:
             for distance in [2.5, 3.0]:
                 wall_check = raycast(
@@ -226,10 +254,37 @@ def handle_wall_running(player_controller):
             if wall_still_there:
                 break
         
+        # Stop condition 1: Wall ends - apply momentum kick
         if not wall_still_there:
+            # Calculate wall running direction for momentum kick
+            forward_dir = camera.forward.normalized()
+            horizontal_forward = Vec3(forward_dir.x, 0, forward_dir.z)
+            
+            if horizontal_forward.length() > 0:
+                horizontal_forward = horizontal_forward.normalized()
+                # Project direction along wall surface
+                wall_direction = horizontal_forward - player_controller.wall_normal * horizontal_forward.dot(player_controller.wall_normal)
+                
+                if wall_direction.length() > 0:
+                    wall_direction = wall_direction.normalized()
+                    
+                    # Apply momentum kick in wall running direction
+                    kick_force = WALL_RUN_SPEED * WALL_END_MOMENTUM_KICK
+                    player_controller.movement_velocity.x = wall_direction.x * kick_force
+                    player_controller.movement_velocity.z = wall_direction.z * kick_force
+                    
+                    # Small upward component to help with transitions
+                    player_controller.movement_velocity.y = WALL_RUN_JUMP_FORCE * 0.3
+                    
+                    print(f"Wall ended - momentum kick applied! Direction: {wall_direction}, Force: {kick_force:.1f}")
+                else:
+                    print("Wall running stopped - wall ended (no momentum)")
+            else:
+                print("Wall running stopped - wall ended (no direction)")
+            
             should_stop = True
         
-        # Stop if player jumps (space key)
+        # Stop condition 2: Player jumps (space key)
         if held_keys['space']:
             # Wall jump - kick player away from wall with strong force
             jump_direction = player_controller.wall_normal.normalized()
@@ -249,6 +304,9 @@ def handle_wall_running(player_controller):
             player_controller.is_wall_running = False
             player_controller.wall_run_timer = 0.0
             player_controller.wall_run_side = 0
+            
+            # Restore normal physics when wall running ends
+            restore_ursina_physics(player_controller)
             print("Stopped wall running")
         else:
             # Apply wall running physics

@@ -73,6 +73,17 @@ class PlayerController:
         self.wall_run_timer = 0.0
         self.wall_normal = Vec3(0, 0, 0)
         self.wall_run_side = 0  # -1 for left wall, 1 for right wall, 0 for no wall
+        
+        # Jump speed system
+        self.jump_speed_active = False
+        self.jump_speed_timer = 0.0
+        self.jump_direction = Vec3(0, 0, 0)
+        
+        # Jump feel enhancements
+        self.jump_buffer_timer = 0.0
+        self.coyote_timer = 0.0
+        self.was_grounded = False
+        self.jump_held = False
     
     def update_velocity_measurement(self) -> None:
         """
@@ -105,6 +116,8 @@ class PlayerController:
         """Update all cooldown timers."""
         self.slide_timer = max(self.slide_timer - time.dt, 0)
         self.dash_timer = max(self.dash_timer - time.dt, 0)
+        self.update_jump_speed_timer()
+        self.update_jump_feel_timers()
     
     def handle_sprint_input(self):
         """Process sprint input and return target max speed."""
@@ -181,6 +194,116 @@ class PlayerController:
             
             self.dash_timer = DASH_COOLDOWN
             print(f"Dash - H: {horizontal_force:.1f}, V: {vertical_force:.1f}, Dir: {dash_direction}")
+    
+    def update_jump_speed_timer(self):
+        """Update jump speed boost timer."""
+        if self.jump_speed_active:
+            self.jump_speed_timer -= time.dt
+            if self.jump_speed_timer <= 0:
+                self.jump_speed_active = False
+                print("Jump speed boost ended")
+    
+    def activate_jump_speed(self):
+        """Activate jump speed boost when jumping."""
+        if not JUMP_SPEED_PRESERVE and self.jump_speed_active:
+            return  # Don't stack jump speed boosts
+        
+        self.jump_speed_active = True
+        self.jump_speed_timer = JUMP_SPEED_DURATION
+        
+        # Determine jump direction
+        if JUMP_SPEED_DIRECTIONAL:
+            # Use current movement input direction
+            input_dir = Vec3(
+                held_keys['d'] - held_keys['a'],  # right-left
+                0,
+                held_keys['w'] - held_keys['s']   # forward-back
+            )
+            if input_dir.length() > 0:
+                input_dir = input_dir.normalized()
+                self.jump_direction = (camera.forward * input_dir.z + camera.right * input_dir.x)
+                self.jump_direction.y = 0
+                if self.jump_direction.length() > 0:
+                    self.jump_direction = self.jump_direction.normalized()
+                else:
+                    self.jump_direction = camera.forward
+                    self.jump_direction.y = 0
+                    self.jump_direction = self.jump_direction.normalized()
+            else:
+                # No input, use camera forward direction
+                self.jump_direction = camera.forward
+                self.jump_direction.y = 0
+                self.jump_direction = self.jump_direction.normalized()
+        else:
+            # Use current movement velocity direction
+            horiz_vel = Vec3(self.movement_velocity.x, 0, self.movement_velocity.z)
+            if horiz_vel.length() > 0:
+                self.jump_direction = horiz_vel.normalized()
+            else:
+                self.jump_direction = camera.forward
+                self.jump_direction.y = 0
+                self.jump_direction = self.jump_direction.normalized()
+        
+        # Apply initial jump speed boost
+        if JUMP_SPEED_PRESERVE:
+            # Add to existing velocity
+            boost_velocity = self.jump_direction * MAX_SPEED * (JUMP_SPEED_BOOST - 1.0)
+            self.movement_velocity.x += boost_velocity.x
+            self.movement_velocity.z += boost_velocity.z
+        else:
+            # Set velocity to boosted speed
+            boost_velocity = self.jump_direction * MAX_SPEED * JUMP_SPEED_BOOST
+            self.movement_velocity.x = boost_velocity.x
+            self.movement_velocity.z = boost_velocity.z
+        
+        print(f"Jump speed activated! Boost: {JUMP_SPEED_BOOST}x for {JUMP_SPEED_DURATION}s")
+    
+    def update_jump_feel_timers(self):
+        """Update jump buffer and coyote time timers."""
+        # Update jump buffer timer
+        if self.jump_buffer_timer > 0:
+            self.jump_buffer_timer -= time.dt
+        
+        # Update coyote timer (grace period after leaving ground)
+        if self.player.grounded:
+            self.coyote_timer = COYOTE_TIME
+            self.was_grounded = True
+        else:
+            if self.was_grounded:
+                self.coyote_timer = COYOTE_TIME
+                self.was_grounded = False
+            else:
+                self.coyote_timer = max(self.coyote_timer - time.dt, 0)
+    
+    def handle_jump_input(self):
+        """Handle jump input with buffering and coyote time."""
+        # Check for jump input
+        if held_keys['space']:
+            if not self.jump_held:
+                # Just pressed jump
+                self.jump_buffer_timer = JUMP_BUFFER_TIME
+                self.jump_held = True
+        else:
+            self.jump_held = False
+        
+        # Try to execute buffered jump
+        if self.jump_buffer_timer > 0:
+            # Can jump if grounded or within coyote time
+            if self.player.grounded or self.coyote_timer > 0:
+                return True
+        
+        return False
+    
+    def handle_jump_cut(self):
+        """Handle variable jump height by cutting jump short."""
+        if JUMP_CUT_ENABLED and not held_keys['space'] and self.movement_velocity.y > 0:
+            # Player released space while going up - cut jump short
+            self.movement_velocity.y *= JUMP_CUT_MULTIPLIER
+    
+    def consume_jump(self):
+        """Consume the jump input (called when jump is executed)."""
+        self.jump_buffer_timer = 0
+        self.coyote_timer = 0
 
 # Global player instance (will be initialized in main.py)
 player_controller = None

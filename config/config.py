@@ -12,8 +12,26 @@ from ursina import *
 # === DISPLAY & GRAPHICS SETTINGS ==============
 # ===============================================
 
-FOV_DEFAULT = 90                  # Default field of view in degrees
+FOV_DEFAULT = 90                 # Default field of view in degrees
 TEXTURE_FILTERING = 'linear'      # Texture filtering: 'nearest', 'linear'
+
+# === Antialiasing Settings ===
+ANTIALIASING_ENABLED = True       # Enable antialiasing (MSAA)
+ANTIALIASING_SAMPLES = 16          # MSAA samples: 2, 4, 8, 16 (higher = better quality, lower performance)
+VSYNC_ENABLED = True              # Enable vertical sync to prevent screen tearing
+
+# === Texture Softening Settings ===
+MIPMAPPING_ENABLED = True         # Enable mipmapping for better distant textures
+ANISOTROPIC_FILTERING = 8         # Anisotropic filtering level: 0, 2, 4, 8, 16 (0 = disabled)
+TEXTURE_SOFTENING = True          # Enable additional texture softening effects
+TEXTURE_BLUR_AMOUNT = 0.5         # Texture blur/softening amount (0.0 = none, 1.0 = maximum)
+TEXTURE_QUALITY = 'high'          # Texture quality: 'low', 'medium', 'high', 'ultra'
+
+# === Skybox Settings ===
+SKYBOX_ENABLED = True             # Enable skybox rendering
+SKYBOX_TEXTURE = './assets/skybox_2.jpg'  # Skybox texture path (can be single image or cubemap)
+SKYBOX_SCALE = 1000               # Skybox scale (large enough to encompass entire scene)
+SKYBOX_COLOR = color.white        # Skybox tint color
 
 # ===============================================
 # === AUDIO SETTINGS ===========================

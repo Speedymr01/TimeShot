@@ -93,3 +93,61 @@ def input(key):
         except Exception as e:
             print(f"Error dropping gun: {e}")
     
+    # Graphics settings hotkeys (for debugging/testing)
+    if key == 'f1':
+        try:
+            from src.core.graphics_utils import print_graphics_info
+            print_graphics_info()
+        except ImportError:
+            print("Graphics utilities not available")
+    
+    if key == 'f2':
+        try:
+            from src.core.graphics_utils import optimize_for_performance
+            optimize_for_performance()
+        except ImportError:
+            print("Graphics utilities not available")
+    
+    if key == 'f3':
+        try:
+            from src.core.graphics_utils import optimize_for_quality
+            optimize_for_quality()
+        except ImportError:
+            print("Graphics utilities not available")
+    
+    if key == 'f4':
+        try:
+            from src.core.graphics_utils import optimize_for_ultra
+            optimize_for_ultra()
+        except ImportError:
+            print("Graphics utilities not available")
+    
+    # Texture quality hotkeys
+    if key == 'f5':
+        try:
+            from src.core.graphics_utils import set_texture_quality
+            set_texture_quality('low')
+        except ImportError:
+            print("Graphics utilities not available")
+    
+    if key == 'f6':
+        try:
+            from src.core.graphics_utils import set_texture_quality
+            set_texture_quality('medium')
+        except ImportError:
+            print("Graphics utilities not available")
+    
+    if key == 'f7':
+        try:
+            from src.core.graphics_utils import set_texture_quality
+            set_texture_quality('high')
+        except ImportError:
+            print("Graphics utilities not available")
+    
+    if key == 'f8':
+        try:
+            from src.core.graphics_utils import set_texture_quality
+            set_texture_quality('ultra')
+        except ImportError:
+            print("Graphics utilities not available")
+    

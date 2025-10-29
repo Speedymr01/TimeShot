@@ -64,8 +64,115 @@ except ImportError as e:
 # === GAME INITIALIZATION ======================
 # ===============================================
 
-# Initialize Ursina engine
+# Initialize Ursina engine with antialiasing
 app = Ursina()
+
+# Suppress icon warnings by setting window properties
+try:
+    window.title = "3D Parkour Shooter"
+    window.borderless = False
+    window.fullscreen = False
+    window.exit_button.visible = False
+    window.fps_counter.enabled = False
+except:
+    pass
+
+# Configure antialiasing and graphics settings
+if ANTIALIASING_ENABLED:
+    try:
+        # Enable multisampling antialiasing (MSAA)
+        from panda3d.core import RenderState, MultisampleAntialiasAttrib
+        
+        # Set MSAA samples
+        render.setAntialias(MultisampleAntialiasAttrib.MAuto, ANTIALIASING_SAMPLES)
+        
+        # Alternative method for older Panda3D versions
+        from panda3d.core import ConfigVariableInt, ConfigVariableBool
+        ConfigVariableInt("multisamples", ANTIALIASING_SAMPLES).setValue(ANTIALIASING_SAMPLES)
+        ConfigVariableBool("framebuffer-multisample", True).setValue(True)
+        
+        print(f"✅ Antialiasing enabled: {ANTIALIASING_SAMPLES}x MSAA")
+        
+    except ImportError:
+        print("⚠️ Advanced antialiasing not available, using basic smoothing")
+        # Fallback: Enable basic smoothing
+        try:
+            render.setShaderAuto()
+        except:
+            pass
+
+# Configure VSync
+if VSYNC_ENABLED:
+    try:
+        from panda3d.core import ConfigVariableBool
+        ConfigVariableBool("sync-video", True).setValue(True)
+        print("✅ VSync enabled")
+    except:
+        print("⚠️ VSync configuration not available")
+
+def apply_texture_quality_settings():
+    """Apply texture quality and softening settings."""
+    try:
+        from panda3d.core import ConfigVariableInt, ConfigVariableBool, ConfigVariableString
+        
+        # Set texture memory and compression based on quality
+        quality_settings = {
+            'low': {'memory': 64, 'compression': True, 'max_size': 512},
+            'medium': {'memory': 128, 'compression': True, 'max_size': 1024},
+            'high': {'memory': 256, 'compression': False, 'max_size': 2048},
+            'ultra': {'memory': 512, 'compression': False, 'max_size': 4096}
+        }
+        
+        settings = quality_settings.get(TEXTURE_QUALITY, quality_settings['high'])
+        
+        # Configure texture memory
+        ConfigVariableInt("texture-memory-limit", settings['memory'] * 1024 * 1024).setValue(settings['memory'] * 1024 * 1024)
+        
+        # Configure texture compression
+        ConfigVariableBool("compressed-textures", settings['compression']).setValue(settings['compression'])
+        
+        # Set maximum texture size
+        ConfigVariableInt("max-texture-dimension", settings['max_size']).setValue(settings['max_size'])
+        
+        print(f"✅ Texture quality set to: {TEXTURE_QUALITY}")
+        
+        # Apply texture softening if enabled
+        if TEXTURE_SOFTENING and TEXTURE_BLUR_AMOUNT > 0:
+            # Enable texture smoothing
+            ConfigVariableBool("smooth-textures", True).setValue(True)
+            print(f"✅ Texture softening enabled: {TEXTURE_BLUR_AMOUNT}")
+        
+    except Exception as e:
+        print(f"⚠️ Could not apply texture quality settings: {e}")
+
+# Configure advanced texture filtering and softening
+try:
+    from panda3d.core import SamplerState, Texture
+    
+    # Set up global texture filtering
+    if TEXTURE_FILTERING == 'linear':
+        render.setShaderAuto()
+        print("✅ Linear texture filtering enabled")
+    
+    # Configure mipmapping globally
+    if MIPMAPPING_ENABLED:
+        # Enable automatic mipmap generation for all textures
+        from panda3d.core import ConfigVariableBool
+        ConfigVariableBool("texture-minfilter", "linear_mipmap_linear").setValue("linear_mipmap_linear")
+        ConfigVariableBool("texture-magfilter", "linear").setValue("linear")
+        print("✅ Mipmapping enabled")
+    
+    # Configure anisotropic filtering
+    if ANISOTROPIC_FILTERING > 0:
+        from panda3d.core import ConfigVariableInt
+        ConfigVariableInt("texture-anisotropic-degree", ANISOTROPIC_FILTERING).setValue(ANISOTROPIC_FILTERING)
+        print(f"✅ Anisotropic filtering enabled: {ANISOTROPIC_FILTERING}x")
+    
+    # Apply texture quality settings
+    apply_texture_quality_settings()
+    
+except Exception as e:
+    print(f"⚠️ Advanced texture filtering not available: {e}")
 
 # Initialize all game systems in correct order
 map_environment = MapEnvironment()

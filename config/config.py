@@ -143,6 +143,7 @@ GRAPPLE_LINE_COLOR = color.black  # Color of grapple line
 GRAPPLE_LINE_THICKNESS = 0.1      # Thickness of grapple line
 GRAPPLE_COOLDOWN = 0.01            # Cooldown between grapple uses (seconds)
 GRAPPLE_GRAVITY_REDUCTION = 0.5   # Gravity multiplier when grappling (0.0 = no gravity, 1.0 = full gravity)
+GRAPPLE_RETRACTION_SPEED = 2.0    # Speed at which cable automatically retracts (units per second)
 
 # ===============================================
 # === COLLISION & PHYSICS =======================

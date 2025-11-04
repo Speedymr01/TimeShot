@@ -235,7 +235,7 @@ def main():
         print_menu()
         
         try:
-            choice = input(Colors.colorize("Select option: ", Colors.BRIGHT_GREEN)).strip().lower()
+            choice = input(Colors.colorize("Select option: ", Colors.GREEN)).strip().lower()
             
             if choice == 'q':
                 print(Colors.colorize("👋 Goodbye!", Colors.BRIGHT_CYAN))

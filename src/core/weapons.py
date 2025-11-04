@@ -37,6 +37,7 @@ class WeaponController:
         self.grapple_line = None
         self.grapple_timer = 0
         self.grapple_hook_entity = None
+        self.grapple_max_distance = 0  # Dynamic maximum cable length (continuously updated)
         
         # Load gunshot sound with validation
         try:
@@ -296,9 +297,11 @@ class WeaponController:
                 # Valid grapple target found
                 self.grapple_point = hit_info.point
                 self.grapple_active = True
+                # Set initial maximum cable length when grapple attaches
+                self.grapple_max_distance = distance(camera.world_position, self.grapple_point)
                 self.create_grapple_line()
                 self.grapple_timer = GRAPPLE_COOLDOWN
-                print(f"Grapple attached at distance: {distance(camera.world_position, self.grapple_point):.1f}")
+                print(f"Grapple attached at distance: {self.grapple_max_distance:.1f}")
                 return True
             else:
                 # No valid target
@@ -389,12 +392,29 @@ class WeaponController:
                 # Add additional upward pull force
                 self.player_controller.movement_velocity.y += abs(direction.y) * GRAPPLE_PULL_FORCE * 0.3 * time.dt
             
-            # Limit maximum grapple distance (cable physics)
-            max_cable_length = GRAPPLE_RANGE * 0.8  # 80% of max range
-            if grapple_distance > max_cable_length:
-                # Pull player back if they get too far
-                constraint_force = direction * (grapple_distance - max_cable_length) * 2
+            # Automatic cable retraction - slowly reduce max cable length over time
+            retraction_amount = GRAPPLE_RETRACTION_SPEED * time.dt
+            self.grapple_max_distance = max(1.0, self.grapple_max_distance - retraction_amount)  # Minimum 1 unit length
+            
+            # Dynamic cable constraint: cable can only get shorter, never longer
+            # Update max distance to current distance if player is closer (ratcheting effect)
+            if grapple_distance < self.grapple_max_distance:
+                self.grapple_max_distance = grapple_distance
+                # Optional: print for debugging
+                # print(f"Cable shortened to: {self.grapple_max_distance:.1f}")
+            
+            # Prevent cable from stretching beyond current maximum length
+            if grapple_distance > self.grapple_max_distance:
+                # Pull player back if they try to move away from current max cable length
+                constraint_force = direction * (grapple_distance - self.grapple_max_distance) * 8  # Strong constraint
                 self.player_controller.movement_velocity += constraint_force * time.dt
+                
+                # Also directly constrain position to prevent cable stretching
+                excess_distance = grapple_distance - self.grapple_max_distance
+                if excess_distance > 0.05:  # Small tolerance for floating point precision
+                    # Move player back to current maximum cable length
+                    corrected_position = self.grapple_point - direction * self.grapple_max_distance
+                    self.player_controller.player.position = corrected_position
             
         except Exception as e:
             print(f"Error applying grapple physics: {e}")
@@ -404,6 +424,7 @@ class WeaponController:
         try:
             self.grapple_active = False
             self.grapple_point = None
+            self.grapple_max_distance = 0  # Reset maximum distance
             
             # Clean up visual elements
             if self.grapple_line:
